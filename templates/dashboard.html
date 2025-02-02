@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        
+        <!-- Phone Authorization Section -->
+        <section class="authorize-section">
+            <h2>Step 1: Authorize Phone</h2>
+            <p>Please authorize your phone number to use the Telegram API.</p>
+            <form id="sendCodeForm" action="/send-code" method="post">
+                <div class="form-group">
+                    <label for="apiId">API ID:</label>
+                    <input type="number" id="apiId" name="apiId" value="{{.settings.ApiId}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="apiHash">API Hash:</label>
+                    <input type="text" id="apiHash" name="apiHash" value="{{.settings.ApiHash}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="authorizedPhoneNumber">Authorized Phone Number:</label>
+                    <input type="text" id="authorizedPhoneNumber" name="authorizedPhoneNumber" value="{{.settings.AuthorizedPhoneNumber}}" required>
+                </div>
+                <button type="submit" class="btn-authorize">Send Code</button>
+            </form>
+            <div id="send-code-status"></div>
+
+            <form id="verifyCodeForm" action="/verify-code" method="post" style="display:none;">
+                <div class="form-group">
+                    <label for="code">Enter Code:</label>
+                    <input type="text" id="code" name="code" required>
+                </div>
+                <button type="submit" class="btn-verify">Verify Code</button>
+            </form>
+            <div id="verify-code-status"></div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="settings-section">
+            <h2>Step 2: Update Settings</h2>
+            <p>Update the settings for your Telegram bot.</p>
+            <form id="settingsForm" action="/update-settings" method="post">
+                <div class="form-group">
+                    <label for="batchSize">Batch Size:</label>
+                    <input type="number" id="batchSize" name="batchSize" value="{{.settings.BatchSize}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="targetGroup">Target Group:</label>
+                    <input type="text" id="targetGroup" name="targetGroup" value="{{.settings.TargetGroup}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="apiToken">API Token:</label>
+                    <input type="text" id="apiToken" name="apiToken" value="{{.settings.ApiToken}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="phonePrefix">Phone Prefix:</label>
+                    <input type="text" id="phonePrefix" name="phonePrefix" value="{{.settings.PhonePrefix}}" required>
+                </div>
+                <button type="submit" class="btn-save">Save Settings</button>
+            </form>
+            <div id="settings-status"></div>
+        </section>
+
+        <!-- File Upload Section -->
+        <section class="upload-section">
+            <h2>Step 3: Upload CSV File</h2>
+            <p>Upload a CSV or XLSX file containing phone numbers to add to the Telegram group.</p>
+            <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="csvfile">Select CSV File:</label>
+                    <input type="file" id="csvfile" name="phonefile" accept=".csv,.xlsx" required>
+                </div>
+                <button type="submit" class="btn-upload">Upload File</button>
+            </form>
+            <div class="upload-progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText">0%</div>
+            </div>
+            <div id="upload-status"></div>
+        </section>
+
+        <!-- Start Adding Members Section -->
+        <section class="start-section">
+            <h2>Step 4: Start Adding Members</h2>
+            <p>Once the file is uploaded and processed, click the button below to start adding members to the Telegram group.</p>
+            <button id="startButton" class="btn-start" disabled>Start Adding Members</button>
+            <div id="start-status"></div>
+        </section>
+    </div>
+
+    <script>
+        document.getElementById('sendCodeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('send-code-status');
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    statusDiv.textContent = 'Code sent successfully!';
+                    statusDiv.className = 'status-success';
+                    document.getElementById('verifyCodeForm').style.display = 'block';
+                } else {
+                    statusDiv.textContent = 'Failed to send code!';
+                    statusDiv.className = 'status-error';
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusDiv.textContent = 'Failed to send code!';
+                statusDiv.className = 'status-error';
+            };
+            
+            xhr.open('POST', '/send-code', true);
+            xhr.send(formData);
+        });
+
+        document.getElementById('verifyCodeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('verify-code-status');
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    statusDiv.textContent = 'Phone number authorized successfully!';
+                    statusDiv.className = 'status-success';
+                    document.getElementById('verifyCodeForm').style.display = 'none';
+                } else {
+                    statusDiv.textContent = 'Failed to authorize phone number!';
+                    statusDiv.className = 'status-error';
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusDiv.textContent = 'Failed to authorize phone number!';
+                statusDiv.className = 'status-error';
+            };
+            
+            xhr.open('POST', '/verify-code', true);
+            xhr.send(formData);
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('upload-status');
+            const progressContainer = document.querySelector('.upload-progress-container');
+            const progressBar = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            // Reset and show progress container
+            progressContainer.classList.add('active');
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            statusDiv.textContent = 'Uploading...';
+            statusDiv.className = 'status-uploading';
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = percentComplete.toFixed(2) + '%';
+                }
+            };
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    statusDiv.textContent = 'Upload successful!';
+                    statusDiv.className = 'status-success';
+                    progressText.style.color = '#4CAF50';
+                    document.getElementById('startButton').disabled = false;
+                } else {
+                    statusDiv.textContent = 'Upload failed!';
+                    statusDiv.className = 'status-error';
+                    progressContainer.classList.remove('active');
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusDiv.textContent = 'Upload failed!';
+                statusDiv.className = 'status-error';
+                progressContainer.classList.remove('active');
+            };
+            
+            xhr.open('POST', '/upload', true);
+            xhr.send(formData);
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('settings-status');
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    statusDiv.textContent = 'Settings saved successfully!';
+                    statusDiv.className = 'status-success';
+                } else {
+                    statusDiv.textContent = 'Failed to save settings!';
+                    statusDiv.className = 'status-error';
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusDiv.textContent = 'Failed to save settings!';
+                statusDiv.className = 'status-error';
+            };
+            
+            xhr.open('POST', '/update-settings', true);
+            xhr.send(formData);
+        });
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            const statusDiv = document.getElementById('start-status');
+            statusDiv.textContent = 'Starting to add members...';
+            statusDiv.className = 'status-uploading';
+
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    statusDiv.textContent = 'Members added successfully!';
+                    statusDiv.className = 'status-success';
+                } else {
+                    statusDiv.textContent = 'Failed to add members!';
+                    statusDiv.className = 'status-error';
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusDiv.textContent = 'Failed to add members!';
+                statusDiv.className = 'status-error';
+            };
+            
+            xhr.open('POST', '/start-adding-members', true);
+            xhr.send();
+        });
+    </script>
+</body>
+</html>

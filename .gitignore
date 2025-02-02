@@ -1,0 +1,74 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the Go compiler
+*.o
+*.a
+*.out
+
+# Go workspace file
+go.work
+
+# Go modules
+go.sum
+go.mod
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Database
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+
+# Dependency directories
+vendor/
+
+# IDE and editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Node.js dependencies
+node_modules/
+
+# Build directories
+build/
+dist/
+
+# Coverage reports
+coverage/
+*.coverprofile
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Uploads directory
+uploads/
+
+# Ignore the apis.json file containing sensitive API credentials
+apis.json
+
+# Ignore the phone numbers file
+*.xlsx
+
+# Ignore the session files
+session_name.session

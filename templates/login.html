@@ -1,0 +1,38 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script>
+        // Check if cookies are enabled
+        function checkCookies() {
+            document.cookie = "testcookie";
+            if (document.cookie.indexOf("testcookie") === -1) {
+                document.getElementById("cookie-warning").style.display = "block";
+            }
+        }
+    </script>
+</head>
+<body onload="checkCookies()">
+    <div class="container">
+        <h1>Login</h1>
+        <div id="cookie-warning" style="display:none; color: red;">
+            Cookies are not enabled in your browser. Please enable cookies to log in.
+        </div>
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <button type="submit">Login</button>
+        </form>
+        {{ if .error }}
+        <p class="error">{{ .error }}</p>
+        {{ end }}
+    </div>
+</body>
+</html>
