@@ -203,7 +203,7 @@ sudo systemctl restart telegram_bot_adder
 ---
 
 ## 📚 Documentation
-📚 [Read Full Documentation](https://ayrop.com/docs)
+📚 [Read Full Documentation](https://ayrop.com/docs/GoTeleBot)
 
 ---
 
@@ -219,5 +219,3 @@ sudo systemctl restart telegram_bot_adder
 
 ## 🌟 Show Your Support
 Give a ⭐ if you like this project!
-
-📌 Follow us on [Twitter](https://twitter.com/ayrop) | 💬 Join the [Community](https://discord.gg/yourdiscord)
